@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>A Special Surprise ❤️</title>
+    <title>A Surprise for You ❤️</title>
     
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -19,7 +19,7 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #fff0f3; /* Light Pink */
+            background-color: #fff0f3;
             font-family: 'Arial Rounded MT Bold', 'Helvetica', sans-serif;
             display: flex;
             justify-content: center;
@@ -27,182 +27,196 @@
             position: fixed;
         }
 
-        #stage {
-            text-align: center;
-            padding: 20px;
-            width: 100%;
+        /* The Card Container */
+        .card {
+            background: white;
+            width: 90%;
+            max-width: 350px;
+            height: 450px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(255, 77, 109, 0.2);
+            position: relative;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 20px;
+        }
+
+        /* The Scratch Layer restricted to the Card */
+        #scratch-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 50;
+            touch-action: none;
+            cursor: crosshair;
+            border-radius: 20px;
         }
 
         .heart {
             color: #ff4d6d;
-            font-size: 60px;
-            margin-bottom: 20px;
+            font-size: 50px;
+            margin-bottom: 10px;
             animation: beat 0.8s infinite;
-            display: block;
         }
 
         @keyframes beat {
             0% { transform: scale(1); }
-            50% { transform: scale(1.15); }
+            50% { transform: scale(1.1); }
             100% { transform: scale(1); }
         }
 
         h1 {
             color: #ff4d6d;
-            font-size: 1.8rem;
-            margin-bottom: 40px;
-            line-height: 1.4;
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            text-align: center;
         }
 
-        .btn-container {
+        .btn-group {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            width: 100%;
-            min-height: 100px;
+            gap: 15px;
+            opacity: 0;
+            transition: opacity 0.8s ease;
         }
 
         button {
-            padding: 15px 35px;
-            font-size: 1.2rem;
+            padding: 12px 25px;
+            font-size: 1rem;
             border: none;
             border-radius: 50px;
             font-weight: bold;
             cursor: pointer;
-            touch-action: none;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: background-color 0.3s ease;
         }
 
-        #yes-btn {
-            background-color: #ff4d6d;
-            color: white;
-            z-index: 10;
-        }
+        #yes-btn { background-color: #ff4d6d; color: white; }
+        #no-btn { background-color: #590d22; color: white; min-width: 100px; }
 
-        #no-btn {
-            background-color: #590d22;
+        .hint {
+            position: absolute;
+            z-index: 60;
             color: white;
-            position: relative; /* Visible by default */
-            z-index: 100;
-            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            pointer-events: none;
+            bottom: 20px;
+            text-align: center;
+            width: 100%;
         }
     </style>
 </head>
 <body>
 
-    <div id="stage">
+    <div class="card">
+        <div id="hint" class="hint">Scratch the card... ✨</div>
+        <canvas id="scratch-canvas"></canvas>
+
         <div class="heart">❤️</div>
         <h1 id="question">Will you be my Valentine?</h1>
         
-        <div class="btn-container">
+        <div id="btn-group" class="btn-group">
             <button id="yes-btn">YES</button>
             <button id="no-btn">No</button>
         </div>
     </div>
 
     <script>
+        const canvas = document.getElementById('scratch-canvas');
+        const ctx = canvas.getContext('2d');
+        const card = document.querySelector('.card');
+        const question = document.getElementById('question');
+        const btnGroup = document.getElementById('btn-group');
+        const hint = document.getElementById('hint');
         const noBtn = document.getElementById('no-btn');
         const yesBtn = document.getElementById('yes-btn');
-        const question = document.getElementById('question');
-        
-        let attempts = 0;
-        const messages = [
-            "No", 
-            "Are you sure? 🤨", 
-            "Think again! 🙄", 
-            "Don't do this... 🥺", 
-            "You're breaking my heart 💔", 
-            "I'm gonna cry... 😭"
-        ];
 
-        function teleportButton(e) {
-            // Prevent the click/tap from actually firing
-            e.preventDefault();
+        let isDrawing = false;
+        let attempts = 0;
+        const messages = ["No", "Wait, what?", "Are you sure?", "Think again!", "You're mean! 😢", "Pretty please? 🥺"];
+
+        function initCanvas() {
+            // Set canvas size to match the card element exactly
+            canvas.width = card.offsetWidth;
+            canvas.height = card.offsetHeight;
             
+            // Draw the scratch surface
+            ctx.fillStyle = '#ffb3c1';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Add text overlay to the scratch surface
+            ctx.fillStyle = "white";
+            ctx.font = "bold 20px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("SCRATCH ME", canvas.width/2, canvas.height/2);
+        }
+
+        function scratch(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+            const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            ctx.arc(x, y, 35, 0, Math.PI * 2);
+            ctx.fill();
+
+            checkScratch();
+        }
+
+        function checkScratch() {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const pixels = imageData.data;
+            let transparent = 0;
+
+            for (let i = 0; i < pixels.length; i += 4) {
+                if (pixels[i + 3] < 128) transparent++;
+            }
+
+            if ((transparent / (pixels.length / 4)) > 0.45) {
+                canvas.style.opacity = "0";
+                hint.style.opacity = "0";
+                setTimeout(() => {
+                    canvas.style.display = "none";
+                    question.style.opacity = "1";
+                    btnGroup.style.opacity = "1";
+                }, 500);
+            }
+        }
+
+        noBtn.addEventListener('click', () => {
             attempts++;
-            
-            // 1. Update text
             if (attempts < messages.length) {
                 noBtn.innerText = messages[attempts];
-            }
-
-            // 2. Check for the "Surrender"
-            if (attempts >= 6) {
-                noBtn.innerText = "Fine, YES! ❤️";
+            } else {
+                noBtn.innerText = "Okay, YES! ❤️";
                 noBtn.style.backgroundColor = "#ff4d6d";
-                noBtn.style.position = "static"; 
-                noBtn.style.transform = "scale(1.2)";
-                
-                // Switch events from "running away" to "celebrating"
-                noBtn.removeEventListener('touchstart', teleportButton);
-                noBtn.removeEventListener('mouseover', teleportButton);
-                noBtn.addEventListener('click', celebrate);
-                return;
+                noBtn.onclick = celebrate;
             }
-
-            // 3. Move the button
-            const padding = 60;
-            const maxX = window.innerWidth - noBtn.offsetWidth - padding;
-            const maxY = window.innerHeight - noBtn.offsetHeight - padding;
-
-            // Ensure the button stays within screen bounds
-            const randomX = Math.max(padding, Math.floor(Math.random() * maxX));
-            const randomY = Math.max(padding, Math.floor(Math.random() * maxY));
-
-            // Force fixed positioning so it can move anywhere on screen
-            noBtn.style.position = "fixed";
-            noBtn.style.left = randomX + "px";
-            noBtn.style.top = randomY + "px";
-        }
+        });
 
         function celebrate() {
             question.innerHTML = "I Knew It! <br> I Love You! ❤️";
-            
-            // Hide the No button if it was the one clicked
-            noBtn.style.display = "none";
-            
-            // Style the Yes button
-            yesBtn.style.transform = "scale(1.5)";
-            yesBtn.innerText = "Forever! ❤️";
-            
-            // Speed up the heart
-            document.querySelector('.heart').style.animationDuration = "0.3s";
-            
-            // Confetti Burst
-            const duration = 3 * 1000;
-            const end = Date.now() + duration;
-
-            (function frame() {
-              confetti({
-                particleCount: 5,
-                angle: 60,
-                spread: 55,
-                origin: { x: 0 },
-                colors: ['#ff4d6d', '#ffffff', '#ffb3c1']
-              });
-              confetti({
-                particleCount: 5,
-                angle: 120,
-                spread: 55,
-                origin: { x: 1 },
-                colors: ['#ff4d6d', '#ffffff', '#ffb3c1']
-              });
-
-              if (Date.now() < end) {
-                requestAnimationFrame(frame);
-              }
-            }());
+            btnGroup.style.display = "none";
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
         }
 
-        // Attach listeners for both mobile and desktop
-        noBtn.addEventListener('touchstart', teleportButton, {passive: false});
-        noBtn.addEventListener('mouseover', teleportButton); 
-        
+        window.addEventListener('load', initCanvas);
+        canvas.addEventListener('mousedown', () => isDrawing = true);
+        canvas.addEventListener('mouseup', () => isDrawing = false);
+        canvas.addEventListener('mousemove', scratch);
+        canvas.addEventListener('touchstart', (e) => { isDrawing = true; scratch(e); });
+        canvas.addEventListener('touchend', () => isDrawing = false);
+        canvas.addEventListener('touchmove', scratch);
         yesBtn.addEventListener('click', celebrate);
     </script>
 </body>
