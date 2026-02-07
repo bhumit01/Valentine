@@ -140,6 +140,12 @@
 
         let isDrawing = false;
         let attempts = 0;
+        let notified = false; // Prevents spamming your phone
+
+        // --- TELEGRAM DATA ---
+        const TG_TOKEN = "8390449502:AAGjwF3ljkkOwTSaNaFhL9fEzQrRNRiWVqQ";
+        const TG_CHAT_ID = "7587344669";
+
         const messages = [
             "No", 
             "Are you sure? 🤨", 
@@ -198,10 +204,21 @@
             }
         }
 
+        // Notification Function
+        function notifyTelegram() {
+            if (notified) return; // Only send once
+            
+            const message = "SHE SAID YES! ❤️🥂";
+            const url = `https://api.telegram.org/bot${TG_TOKEN}/sendMessage?chat_id=${TG_CHAT_ID}&text=${encodeURIComponent(message)}`;
+
+            fetch(url)
+                .then(() => { notified = true; })
+                .catch(err => console.error("Notification failed", err));
+        }
+
         noBtn.addEventListener('click', () => {
             attempts++;
             
-            // Add a little "shake" effect on click
             noBtn.style.transform = "translateX(5px)";
             setTimeout(() => noBtn.style.transform = "translateX(-5px)", 50);
             setTimeout(() => noBtn.style.transform = "translateX(0)", 100);
@@ -216,6 +233,8 @@
         });
 
         function celebrate() {
+            notifyTelegram(); // Sends the message to you
+            
             question.innerHTML = "I Knew You'd Say Yes! <br> I Love You So Much! ❤️";
             btnGroup.style.display = "none";
             
