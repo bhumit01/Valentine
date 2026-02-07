@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>A Surprise for You ❤️</title>
+    <title>A Special Surprise ❤️</title>
     
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -27,13 +27,13 @@
             position: fixed;
         }
 
-        /* The Card Container */
+        /* The Card UI */
         .card {
             background: white;
             width: 90%;
             max-width: 350px;
             height: 450px;
-            border-radius: 20px;
+            border-radius: 25px;
             box-shadow: 0 15px 35px rgba(255, 77, 109, 0.2);
             position: relative;
             overflow: hidden;
@@ -41,10 +41,10 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 30px;
+            border: 4px solid #fff;
         }
 
-        /* The Scratch Layer restricted to the Card */
         #scratch-canvas {
             position: absolute;
             top: 0;
@@ -57,8 +57,8 @@
 
         .heart {
             color: #ff4d6d;
-            font-size: 50px;
-            margin-bottom: 10px;
+            font-size: 60px;
+            margin-bottom: 15px;
             animation: beat 0.8s infinite;
         }
 
@@ -70,29 +70,30 @@
 
         h1 {
             color: #ff4d6d;
-            font-size: 1.5rem;
-            margin-bottom: 30px;
+            font-size: 1.6rem;
+            margin-bottom: 40px;
             opacity: 0;
             transition: opacity 0.8s ease;
             text-align: center;
+            line-height: 1.4;
         }
 
         .btn-group {
             display: flex;
-            gap: 15px;
+            gap: 20px;
             opacity: 0;
             transition: opacity 0.8s ease;
         }
 
         button {
-            padding: 12px 25px;
-            font-size: 1rem;
+            padding: 15px 30px;
+            font-size: 1.1rem;
             border: none;
             border-radius: 50px;
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            transition: background-color 0.3s ease;
+            transition: all 0.2s ease;
         }
 
         #yes-btn { background-color: #ff4d6d; color: white; }
@@ -102,18 +103,20 @@
             position: absolute;
             z-index: 60;
             color: white;
-            font-size: 0.9rem;
+            font-size: 1rem;
             pointer-events: none;
-            bottom: 20px;
+            bottom: 30px;
             text-align: center;
             width: 100%;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <div id="hint" class="hint">Scratch the card... ✨</div>
+        <div id="hint" class="hint">Scratch to reveal... ✨</div>
         <canvas id="scratch-canvas"></canvas>
 
         <div class="heart">❤️</div>
@@ -137,10 +140,16 @@
 
         let isDrawing = false;
         let attempts = 0;
-        const messages = ["No", "Wait, what?", "Are you sure?", "Think again!", "You're mean! 😢", "Pretty please? 🥺"];
+        const messages = [
+            "No", 
+            "Are you sure? 🤨", 
+            "Think again! 🙄", 
+            "Don't do this to me... 🥺", 
+            "You're breaking my heart 💔", 
+            "Pretty please? 🥺"
+        ];
 
         function initCanvas() {
-            // Set canvas size to match the card element exactly
             canvas.width = card.offsetWidth;
             canvas.height = card.offsetHeight;
             
@@ -148,11 +157,11 @@
             ctx.fillStyle = '#ffb3c1';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Add text overlay to the scratch surface
+            // Add text overlay
             ctx.fillStyle = "white";
-            ctx.font = "bold 20px Arial";
+            ctx.font = "bold 24px Arial";
             ctx.textAlign = "center";
-            ctx.fillText("SCRATCH ME", canvas.width/2, canvas.height/2);
+            ctx.fillText("FOR YOU ❤️", canvas.width/2, canvas.height/2);
         }
 
         function scratch(e) {
@@ -191,6 +200,12 @@
 
         noBtn.addEventListener('click', () => {
             attempts++;
+            
+            // Add a little "shake" effect on click
+            noBtn.style.transform = "translateX(5px)";
+            setTimeout(() => noBtn.style.transform = "translateX(-5px)", 50);
+            setTimeout(() => noBtn.style.transform = "translateX(0)", 100);
+
             if (attempts < messages.length) {
                 noBtn.innerText = messages[attempts];
             } else {
@@ -201,12 +216,14 @@
         });
 
         function celebrate() {
-            question.innerHTML = "I Knew It! <br> I Love You! ❤️";
+            question.innerHTML = "I Knew You'd Say Yes! <br> I Love You So Much! ❤️";
             btnGroup.style.display = "none";
+            
             confetti({
                 particleCount: 150,
                 spread: 70,
-                origin: { y: 0.6 }
+                origin: { y: 0.6 },
+                colors: ['#ff4d6d', '#ffffff', '#ffb3c1']
             });
         }
 
