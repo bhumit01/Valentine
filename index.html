@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>A Special Surprise ❤️</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #fff0f3; /* Light Pink */
+            font-family: 'Arial Rounded MT Bold', 'Helvetica', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+        }
+
+        #stage {
+            text-align: center;
+            padding: 20px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .heart {
+            color: #ff4d6d;
+            font-size: 60px;
+            margin-bottom: 20px;
+            animation: beat 0.8s infinite;
+            display: block;
+        }
+
+        @keyframes beat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        h1 {
+            color: #ff4d6d;
+            font-size: 1.8rem;
+            margin-bottom: 40px;
+            line-height: 1.4;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            min-height: 100px;
+        }
+
+        button {
+            padding: 15px 35px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            touch-action: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        #yes-btn {
+            background-color: #ff4d6d;
+            color: white;
+            z-index: 10;
+        }
+
+        #no-btn {
+            background-color: #590d22;
+            color: white;
+            position: relative; /* Visible by default */
+            z-index: 100;
+            transition: all 0.2s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="stage">
+        <div class="heart">❤️</div>
+        <h1 id="question">Will you be my Valentine?</h1>
+        
+        <div class="btn-container">
+            <button id="yes-btn">YES</button>
+            <button id="no-btn">No</button>
+        </div>
+    </div>
+
+    <script>
+        const noBtn = document.getElementById('no-btn');
+        const yesBtn = document.getElementById('yes-btn');
+        const question = document.getElementById('question');
+        
+        let attempts = 0;
+        const messages = [
+            "No", 
+            "Are you sure? 🤨", 
+            "Think again! 🙄", 
+            "Don't do this... 🥺", 
+            "You're breaking my heart 💔", 
+            "I'm gonna cry... 😭"
+        ];
+
+        function teleportButton(e) {
+            // Prevent the click/tap from actually firing
+            e.preventDefault();
+            
+            attempts++;
+            
+            // 1. Update text
+            if (attempts < messages.length) {
+                noBtn.innerText = messages[attempts];
+            }
+
+            // 2. Check for the "Surrender"
+            if (attempts >= 6) {
+                noBtn.innerText = "Fine, YES! ❤️";
+                noBtn.style.backgroundColor = "#ff4d6d";
+                noBtn.style.position = "static"; 
+                noBtn.style.transform = "scale(1.2)";
+                
+                // Switch events from "running away" to "celebrating"
+                noBtn.removeEventListener('touchstart', teleportButton);
+                noBtn.removeEventListener('mouseover', teleportButton);
+                noBtn.addEventListener('click', celebrate);
+                return;
+            }
+
+            // 3. Move the button
+            const padding = 60;
+            const maxX = window.innerWidth - noBtn.offsetWidth - padding;
+            const maxY = window.innerHeight - noBtn.offsetHeight - padding;
+
+            // Ensure the button stays within screen bounds
+            const randomX = Math.max(padding, Math.floor(Math.random() * maxX));
+            const randomY = Math.max(padding, Math.floor(Math.random() * maxY));
+
+            // Force fixed positioning so it can move anywhere on screen
+            noBtn.style.position = "fixed";
+            noBtn.style.left = randomX + "px";
+            noBtn.style.top = randomY + "px";
+        }
+
+        function celebrate() {
+            question.innerHTML = "I Knew It! <br> I Love You! ❤️";
+            
+            // Hide the No button if it was the one clicked
+            noBtn.style.display = "none";
+            
+            // Style the Yes button
+            yesBtn.style.transform = "scale(1.5)";
+            yesBtn.innerText = "Forever! ❤️";
+            
+            // Speed up the heart
+            document.querySelector('.heart').style.animationDuration = "0.3s";
+            
+            // Confetti Burst
+            const duration = 3 * 1000;
+            const end = Date.now() + duration;
+
+            (function frame() {
+              confetti({
+                particleCount: 5,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 },
+                colors: ['#ff4d6d', '#ffffff', '#ffb3c1']
+              });
+              confetti({
+                particleCount: 5,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 },
+                colors: ['#ff4d6d', '#ffffff', '#ffb3c1']
+              });
+
+              if (Date.now() < end) {
+                requestAnimationFrame(frame);
+              }
+            }());
+        }
+
+        // Attach listeners for both mobile and desktop
+        noBtn.addEventListener('touchstart', teleportButton, {passive: false});
+        noBtn.addEventListener('mouseover', teleportButton); 
+        
+        yesBtn.addEventListener('click', celebrate);
+    </script>
+</body>
+</html>
