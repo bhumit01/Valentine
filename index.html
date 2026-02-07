@@ -27,7 +27,6 @@
             position: fixed;
         }
 
-        /* The Card UI */
         .card {
             background: white;
             width: 90%;
@@ -120,7 +119,7 @@
         <canvas id="scratch-canvas"></canvas>
 
         <div class="heart">❤️</div>
-        <h1 id="question">Will you be my Valentine?</h1>
+        <h1 id="question">Will you be my Valentine, Babbu?</h1>
         
         <div id="btn-group" class="btn-group">
             <button id="yes-btn">YES</button>
@@ -140,34 +139,29 @@
 
         let isDrawing = false;
         let attempts = 0;
-        let notified = false; // Prevents spamming your phone
+        let notifiedYes = false;
 
-        // --- TELEGRAM DATA ---
         const TG_TOKEN = "8390449502:AAGjwF3ljkkOwTSaNaFhL9fEzQrRNRiWVqQ";
         const TG_CHAT_ID = "7587344669";
 
         const messages = [
             "No", 
-            "Are you sure? 🤨", 
+            "Are you sure Babbu? 🤨", 
             "Think again! 🙄", 
             "Don't do this to me... 🥺", 
-            "You're breaking my heart 💔", 
-            "Pretty please? 🥺"
+            "Breaking my heart 💔", 
+            "Pretty please, Babbu? 🥺"
         ];
 
         function initCanvas() {
             canvas.width = card.offsetWidth;
             canvas.height = card.offsetHeight;
-            
-            // Draw the scratch surface
             ctx.fillStyle = '#ffb3c1';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Add text overlay
             ctx.fillStyle = "white";
             ctx.font = "bold 24px Arial";
             ctx.textAlign = "center";
-            ctx.fillText("FOR YOU ❤️", canvas.width/2, canvas.height/2);
+            ctx.fillText("FOR BABBU ❤️", canvas.width/2, canvas.height/2);
         }
 
         function scratch(e) {
@@ -175,12 +169,10 @@
             const rect = canvas.getBoundingClientRect();
             const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
             const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
-
             ctx.globalCompositeOperation = 'destination-out';
             ctx.beginPath();
             ctx.arc(x, y, 35, 0, Math.PI * 2);
             ctx.fill();
-
             checkScratch();
         }
 
@@ -188,11 +180,9 @@
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const pixels = imageData.data;
             let transparent = 0;
-
             for (let i = 0; i < pixels.length; i += 4) {
                 if (pixels[i + 3] < 128) transparent++;
             }
-
             if ((transparent / (pixels.length / 4)) > 0.45) {
                 canvas.style.opacity = "0";
                 hint.style.opacity = "0";
@@ -204,21 +194,13 @@
             }
         }
 
-        // Notification Function
-        function notifyTelegram() {
-            if (notified) return; // Only send once
-            
-            const message = "SHE SAID YES! ❤️🥂";
-            const url = `https://api.telegram.org/bot${TG_TOKEN}/sendMessage?chat_id=${TG_CHAT_ID}&text=${encodeURIComponent(message)}`;
-
-            fetch(url)
-                .then(() => { notified = true; })
-                .catch(err => console.error("Notification failed", err));
+        function sendTG(msg) {
+            const url = `https://api.telegram.org/bot${TG_TOKEN}/sendMessage?chat_id=${TG_CHAT_ID}&text=${encodeURIComponent(msg)}`;
+            fetch(url).catch(e => console.error(e));
         }
 
         noBtn.addEventListener('click', () => {
             attempts++;
-            
             noBtn.style.transform = "translateX(5px)";
             setTimeout(() => noBtn.style.transform = "translateX(-5px)", 50);
             setTimeout(() => noBtn.style.transform = "translateX(0)", 100);
@@ -233,9 +215,12 @@
         });
 
         function celebrate() {
-            notifyTelegram(); // Sends the message to you
+            if(!notifiedYes) {
+                sendTG("🚨 BABBU SAID YES! ❤️🥂");
+                notifiedYes = true;
+            }
             
-            question.innerHTML = "I Knew You'd Say Yes! <br> I Love You So Much! ❤️";
+            question.innerHTML = "I Knew You'd Say Yes! <br> I Love You So Much, Babbu! ❤️";
             btnGroup.style.display = "none";
             
             confetti({
@@ -246,7 +231,12 @@
             });
         }
 
-        window.addEventListener('load', initCanvas);
+        window.addEventListener('load', () => {
+            initCanvas();
+            // Send notification that link was opened
+            sendTG("👀 Babbu just opened the link!");
+        });
+
         canvas.addEventListener('mousedown', () => isDrawing = true);
         canvas.addEventListener('mouseup', () => isDrawing = false);
         canvas.addEventListener('mousemove', scratch);
